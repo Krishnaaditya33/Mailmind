@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "next start"
+    "build": "next build"
     "build": "vercel build"
     "test": "echo \"Error: no test specified\" && exit 1"
   },

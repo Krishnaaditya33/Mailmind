@@ -6,7 +6,7 @@
     "start": "next start"
     "build": "next build"
     "build": "vercel build"
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1 && 127"
   },
   "keywords": [],
   "author": "",

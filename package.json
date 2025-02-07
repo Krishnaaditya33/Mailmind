@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "next start"
-    "build": "next build"
-    "build": "vercel build"
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test": "echo \"Error: no test specified\" && exit 127"
+    "start": "node index.js",
+    "start": "next start",
+    "build": "next build",
+    "build": "vercel build",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",

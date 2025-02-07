@@ -8,6 +8,7 @@
     "build": "next build",
     "build": "vercel build",
     "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'No build required'"
   },
   "keywords": [],
   "author": "",

@@ -206,14 +206,37 @@ async function getEmail(messageId,auth) {
 // })
 
 
-schedule.scheduleJob('*/50 * * * *', async () => {
+// schedule.scheduleJob('*/50 * * * *', async () => {
+//   try {
+//     const auth = await authorize();
+//     await listLabels(auth);
+//   } catch (error) {
+//     console.error('Error:', error);
+//   }
+// });
+
+async function main() {  // Renamed to main
   try {
-    const auth = await authorize();
-    await listLabels(auth);
+      const auth = await authorize();
+      await listLabels(auth);
   } catch (error) {
-    console.error('Error:', error);
+      console.error('Error in main:', error); // More specific error message
+  }
+}
+
+// GET route to trigger the labeling process
+app.get('/', async (req, res) => {  
+  try {
+      await main(); // Call the main function
+      res.json({ message: 'Email labeling process initiated.' });
+  } catch (error) {
+      console.error('Error in / route:', error);
+      res.status(500).json({ error: 'An error occurred during labeling.' });
   }
 });
+
+// Existing scheduled job (still runs in the background):
+schedule.scheduleJob('*/50 * * * *', main);
 
 app.listen(port, () => {
     console.log(`Listening at: http://localhost:${port}`);

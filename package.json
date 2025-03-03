@@ -19,8 +19,6 @@
         "next": "latest",
         "react": "latest",
         "react-dom": "latest",
-        "@react-three/fiber": "^8.0.0",
-        "framer-motion": "^10.0.0",
         "node-schedule": "^2.1.1",
         "punycode": "^2.3.1"
     },

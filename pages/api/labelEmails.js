@@ -5,8 +5,8 @@ import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Replace with your actual API key and file paths
-const API_KEY = "AIzaSyCVs2GVPL55Xa6-nABR7PdnWuqPRgp1n8E"; // Consider using environment variables for sensitive data
+// Use an environment variable for your API key if possible.
+const API_KEY = process.env.GENERATIVE_AI_API_KEY || "AIzaSyCVs2GVPL55Xa6-nABR7PdnWuqPRgp1n8E";
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   'https://www.googleapis.com/auth/gmail.send'
@@ -14,9 +14,15 @@ const SCOPES = [
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credential.json');
 
+// Global label map to store label names and their IDs.
 let labelMap = [];
 
-// Load saved credentials if they exist
+// Helper to get a label's ID by name from labelMap.
+function getLabelId(labelName) {
+  const label = labelMap.find(l => l.name === labelName);
+  return label ? label.id : null;
+}
+
 async function loadSavedCredentialsIfExist() {
   try {
     const content = await fs.readFile(TOKEN_PATH);
@@ -27,7 +33,6 @@ async function loadSavedCredentialsIfExist() {
   }
 }
 
-// Save credentials for future use
 async function saveCredentials(client) {
   const content = await fs.readFile(CREDENTIALS_PATH);
   const keys = JSON.parse(content);
@@ -41,7 +46,6 @@ async function saveCredentials(client) {
   await fs.writeFile(TOKEN_PATH, payload);
 }
 
-// Authorize and return an authenticated client
 async function authorize() {
   let client = await loadSavedCredentialsIfExist();
   if (client) {
@@ -57,11 +61,11 @@ async function authorize() {
   return client;
 }
 
-// List Gmail labels and process unread messages
 async function listLabels(auth) {
   const gmail = google.gmail({ version: 'v1', auth });
   const res = await gmail.users.labels.list({ userId: 'me' });
   const labels = res.data.labels;
+  labelMap = []; // Reset the label map.
   if (!labels || labels.length === 0) {
     console.log('No labels found.');
     return;
@@ -71,51 +75,20 @@ async function listLabels(auth) {
     console.log(`${label.name}: ${label.id}`);
     labelMap.push({ name: label.name, id: label.id });
   });
-  
-  // List unread messages
-  const res1 = await gmail.users.messages.list({
-    userId: 'me',
-    q: 'is:unread',
-    maxResults: 5,
-  });
-  const messages = res1.data.messages;
-  if (messages && messages.length > 0) {
-    for (let message of messages) {
-      const email = await getEmail(message.id, auth);
-      try {
-        const labelsGenerated = await generateEmailLabels(email.data.snippet);
-        console.log('Generated labels:', labelsGenerated);
-        if (labelsGenerated.length > 0) {
-          for (const labelName of labelsGenerated) {
-            if (!labelExists(labelName, labelMap)) {
-              await createLabel(auth, labelName);
-            }
-            await moveEmailToLabel(auth, email.data.id, labelName, email.data.labelIds);
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
 }
 
-function labelExists(labelName, labelMap) {
-  return labelMap.some(label => label.name === labelName);
-}
-
-async function moveEmailToLabel(auth, messageId, labelName, removeId) {
+async function moveEmailToLabel(auth, messageId, labelId, removeLabelIds) {
   const gmail = google.gmail({ version: 'v1', auth });
   try {
     const res = await gmail.users.messages.modify({
       userId: 'me',
       id: messageId,
       requestBody: {
-        addLabelIds: [labelName], // Ensure this is the label ID if required
-        removeLabelIds: removeId ? [removeId] : [],
+        addLabelIds: [labelId],
+        removeLabelIds: removeLabelIds || [],
       },
     });
-    console.log('Email moved to label:', res.data);
+    console.log('Email moved:', res.data);
   } catch (err) {
     console.error('Error moving email:', err);
   }
@@ -136,8 +109,10 @@ async function createLabel(auth, labelName) {
     });
     console.log(`Created label: ${response.data.name}`);
     labelMap.push({ name: response.data.name, id: response.data.id });
+    return response.data.id;
   } catch (error) {
     console.error('Error creating label:', error);
+    return null;
   }
 }
 
@@ -159,16 +134,42 @@ async function getEmail(messageId, auth) {
   return res;
 }
 
-async function main() {
-  try {
-    const auth = await authorize();
-    await listLabels(auth);
-  } catch (error) {
-    console.error('Error in main:', error);
+async function processEmails(auth) {
+  const gmail = google.gmail({ version: 'v1', auth });
+  const res1 = await gmail.users.messages.list({
+    userId: 'me',
+    q: 'is:unread',
+    maxResults: 5,
+  });
+  const messages = res1.data.messages;
+  if (messages && messages.length > 0) {
+    for (let message of messages) {
+      const email = await getEmail(message.id, auth);
+      try {
+        const generatedLabels = await generateEmailLabels(email.data.snippet);
+        console.log('Generated labels:', generatedLabels);
+        for (const labelName of generatedLabels) {
+          let labelId = getLabelId(labelName);
+          if (!labelId) {
+            labelId = await createLabel(auth, labelName);
+          }
+          if (labelId) {
+            await moveEmailToLabel(auth, email.data.id, labelId, email.data.labelIds);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing email:', error);
+      }
+    }
   }
 }
 
-// This is the API route handler for /api/labelEmails
+async function main() {
+  const auth = await authorize();
+  await listLabels(auth);
+  await processEmails(auth);
+}
+
 export default async function handler(req, res) {
   try {
     await main();

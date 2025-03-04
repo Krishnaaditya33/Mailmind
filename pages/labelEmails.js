@@ -3,7 +3,90 @@ import fs from 'fs/promises';
 import path from 'path';
 import process from 'process';
 import { authenticate } from '@google-cloud/local-auth';
+import { google } from 'google// pages/api/labelEmails.js
+import fs from 'fs/promises';
+import path from 'path';
+import process from 'process';
+import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Replace with your actual API key and file paths
+const API_KEY = "AIzaSyCVs2GVPL55Xa6-nABR7PdnWuqPRgp1n8E";
+const SCOPES = [
+  'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.send'
+];
+const TOKEN_PATH = path.join(process.cwd(), 'token.json');
+const CREDENTIALS_PATH = path.join(process.cwd(), 'credential.json');
+
+let labelMap = [];
+
+// Load saved credentials if they exist
+async function loadSavedCredentialsIfExist() {
+  try {
+    const content = await fs.readFile(TOKEN_PATH);
+    const credentials = JSON.parse(content);
+    return google.auth.fromJSON(credentials);
+  } catch (err) {
+    return null;
+  }
+}
+
+// Save the credentials for future use
+async function saveCredentials(client) {
+  const content = await fs.readFile(CREDENTIALS_PATH);
+  const keys = JSON.parse(content);
+  const key = keys.installed || keys.web;
+  const payload = JSON.stringify({
+    type: 'authorized_user',
+    client_id: key.client_id,
+    client_secret: key.client_secret,
+    refresh_token: client.credentials.refresh_token,
+  });
+  await fs.writeFile(TOKEN_PATH, payload);
+}
+
+// Authorize and return an authenticated client
+async function authorize() {
+  let client = await loadSavedCredentialsIfExist();
+  if (client) {
+    return client;
+  }
+  client = await authenticate({
+    scopes: SCOPES,
+    keyfilePath: CREDENTIALS_PATH,
+  });
+  if (client.credentials) {
+    await saveCredentials(client);
+  }
+  return client;
+}
+
+// List Gmail labels and process unread messages
+async function listLabels(auth) {
+  const gmail = google.gmail({ version: 'v1', auth });
+  const res = await gmail.users.labels.list({
+    userId: 'me',
+  });
+  const labels = res.data.labels;
+  if (!labels || labels.length === 0) {
+    console.log('No labels found.');
+    return;
+  }
+  console.log('Labels:');
+  labels.forEach((label) => {
+    console.log(`${label.name}: ${label.id}`);
+    labelMap.push({ name: label.name, id: label.id });
+  });
+
+  // List unread messages
+  const res1 = await gmail.users.messages.list({
+    userId: 'me',
+    q: 'is:unread',
+    maxResults: 5,
+  });
+  const messages = res1.dataapis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Replace with your actual API key and file paths

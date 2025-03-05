@@ -84,9 +84,15 @@ async function moveEmailToLabel(auth, messageId, labelId, removeLabelIds) {
       userId: 'me',
       id: messageId,
       requestBody: {
-        addLabelIds: [labelId],
+        addLabelIds: [labelId], // Here labelId is used
         removeLabelIds: removeLabelIds || [],
       },
+    });
+    console.log('Email moved:', res.data);
+  } catch (err) {
+    console.error('Error moving email:', err);
+  }
+},
     });
     console.log('Email moved:', res.data);
   } catch (err) {
@@ -149,14 +155,16 @@ async function processEmails(auth) {
         const generatedLabels = await generateEmailLabels(email.data.snippet);
         console.log('Generated labels:', generatedLabels);
         for (const labelName of generatedLabels) {
-          let labelId = getLabelId(labelName);
-          if (!labelId) {
-            labelId = await createLabel(auth, labelName);
-          }
-          if (labelId) {
-            await moveEmailToLabel(auth, email.data.id, labelId, email.data.labelIds);
-          }
-        }
+  let labelId = getLabelId(labelName);
+  if (!labelId) {
+    labelId = await createLabel(auth, labelName);
+  }
+  if (labelId) {
+    // Pass labelId instead of labelName
+    await moveEmailToLabel(auth, email.data.id, labelId, email.data.labelIds);
+  }
+}
+        
       } catch (error) {
         console.error('Error processing email:', error);
       }

@@ -6,7 +6,9 @@ import { google } from 'googleapis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Use an environment variable for your API key if possible.
-const API_KEY = process.env.GENERATIVE_AI_API_KEY || "AIzaSyCVs2GVPL55Xa6-nABR7PdnWuqPRgp1n8E";
+const API_KEY =
+  process.env.GENERATIVE_AI_API_KEY ||
+  "AIzaSyCVs2GVPL55Xa6-nABR7PdnWuqPRgp1n8E";
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   'https://www.googleapis.com/auth/gmail.send'
@@ -19,7 +21,7 @@ let labelMap = [];
 
 // Helper to get a label's ID by name from labelMap.
 function getLabelId(labelName) {
-  const label = labelMap.find(l => l.name === labelName);
+  const label = labelMap.find((l) => l.name === labelName);
   return label ? label.id : null;
 }
 
@@ -84,15 +86,9 @@ async function moveEmailToLabel(auth, messageId, labelId, removeLabelIds) {
       userId: 'me',
       id: messageId,
       requestBody: {
-        addLabelIds: [labelId], // Here labelId is used
+        addLabelIds: [labelId], // Passing labelId instead of labelName
         removeLabelIds: removeLabelIds || [],
       },
-    });
-    console.log('Email moved:', res.data);
-  } catch (err) {
-    console.error('Error moving email:', err);
-  }
-},
     });
     console.log('Email moved:', res.data);
   } catch (err) {
@@ -127,7 +123,7 @@ async function generateEmailLabels(emailContent) {
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const prompt = `Given the following email content, suggest two appropriate label names (only the label names, separated by commas): ${emailContent}`;
   const response = await model.generateContent([prompt]);
-  const labels = response.response.text().split(',').map(label => label.trim());
+  const labels = response.response.text().split(',').map((label) => label.trim());
   return labels;
 }
 
@@ -155,16 +151,14 @@ async function processEmails(auth) {
         const generatedLabels = await generateEmailLabels(email.data.snippet);
         console.log('Generated labels:', generatedLabels);
         for (const labelName of generatedLabels) {
-  let labelId = getLabelId(labelName);
-  if (!labelId) {
-    labelId = await createLabel(auth, labelName);
-  }
-  if (labelId) {
-    // Pass labelId instead of labelName
-    await moveEmailToLabel(auth, email.data.id, labelId, email.data.labelIds);
-  }
-}
-        
+          let labelId = getLabelId(labelName);
+          if (!labelId) {
+            labelId = await createLabel(auth, labelName);
+          }
+          if (labelId) {
+            await moveEmailToLabel(auth, email.data.id, labelId, email.data.labelIds);
+          }
+        }
       } catch (error) {
         console.error('Error processing email:', error);
       }

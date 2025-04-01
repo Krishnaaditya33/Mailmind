@@ -1,8 +1,12 @@
 export default function About() {
   return (
-    <div className="h-screen flex flex-col items-center justify-center text-white bg-gray-800">
-      <h1 className="text-4xl font-bold">About Us</h1>
-      <p className="text-lg mt-4">Learn more about our startup and vision.</p>
+    <div className="h-screen bg-black text-white flex flex-col items-center justify-center">
+      <NavBar />
+      <h1 className="text-3xl font-bold">About MailMind</h1>
+      <p className="mt-4 max-w-xl text-center">
+        MailMind is an AI-powered Gmail extension that organizes your inbox,
+        reduces distractions, and highlights essential emails.
+      </p>
     </div>
   );
 }

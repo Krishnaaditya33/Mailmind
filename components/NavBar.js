@@ -1,4 +1,5 @@
-"use client";
+// /components/NavBar.js
+"use client";  // Only use this if you're using client-side logic
 import Link from "next/link";
 
 export default function NavBar() {

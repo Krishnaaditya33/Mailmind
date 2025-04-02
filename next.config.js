@@ -5,5 +5,6 @@ const nextConfig = {
 };
 
 module.exports = {
-  distDir: 'build',
+  output: 'export', // Generates static files
+  // No distDir needed, output goes to 'out' by default
 };

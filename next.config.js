@@ -2,14 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'export' // Generates static files, outputs to 'out'
+  output: 'export', // Generates static files, outputs to 'out'
+  trailingSlash: true, // Boolean
+  rewrites: async () => [], // Empty array for rewrite rules
+  redirects: async () => [], // Empty array for redirect rules
+  headers: async () => [] // Empty array for header rules
 };
 
-module.exports = {
-  rewrites: ...,       // Array of rewrite rules
-  redirects: ...,      // Array of redirect rules
-  headers: ...,        // Array of header rules
-  trailingSlash: true, // Boolean
-  cleanUrls: ...,      // Not a Next.js property, possibly from another framework
-  routes: ...,         // Likely the conflicting property
-};
+module.exports = nextConfig;

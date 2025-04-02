@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "next dev",
         "dev": "next dev --turbopack",
-        "build": "next build && next export",
+        "build": "next build && next export && mv out public",
         "start": "next start",
         "test": "echo \"Error: no test specified\" && exit 1"
     },

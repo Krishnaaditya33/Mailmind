@@ -1,5 +1,4 @@
-# Node modules
 node_modules/
-
-# Next.js build output
 .next/
+some/other/path/
+another/file.txt

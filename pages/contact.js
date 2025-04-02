@@ -1,9 +1,11 @@
+import NavBar from '../components/NavBar'; // Add this line
+
 export default function Contact() {
   return (
-    <div className="h-screen bg-black text-white flex flex-col items-center justify-center">
+    <div>
       <NavBar />
-      <h1 className="text-3xl font-bold">Contact Us</h1>
-      <p className="mt-4">For inquiries, email us at support@mailmind.com</p>
+      <h1>Contact Page</h1>
+      <p>Get in touch with us!</p>
     </div>
   );
 }

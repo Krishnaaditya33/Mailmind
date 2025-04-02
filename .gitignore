@@ -1,4 +1,4 @@
+# Combined .gitignore
 node_modules/
 .next/
-some/other/path/
-another/file.txt
+out/
